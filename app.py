@@ -8,15 +8,19 @@ GROBID_URL = os.environ.get("GROBID_URL", "https://lfoppiano-grobid-dev-full.hf.
 GROBID_TIMEOUT = int(os.environ.get("GROBID_TIMEOUT", "30"))
 
 
-def parse_citation(citation: str) -> str:
+def parse_citation(citation: str, consolidate: bool = False) -> str:
     """Send a free-text citation to GROBID and return BibTeX."""
     citation = citation.strip()
     if not citation:
         raise ValueError("Empty citation.")
 
+    data = {"citations": citation}
+    if consolidate:
+        data["consolidateCitations"] = "1"
+
     resp = httpx.post(
         f"{GROBID_URL}/api/processCitation",
-        data={"citations": citation},
+        data=data,
         headers={"Accept": "application/x-bibtex"},
         timeout=GROBID_TIMEOUT,
     )
@@ -32,9 +36,9 @@ def parse_citation(citation: str) -> str:
 def _build_demo():
     import gradio as gr
 
-    def _gradio_parse(citation: str) -> str:
+    def _gradio_parse(citation: str, consolidate: bool) -> str:
         try:
-            return parse_citation(citation)
+            return parse_citation(citation, consolidate=consolidate)
         except ValueError as e:
             raise gr.Error(str(e))
         except httpx.ConnectError:
@@ -53,11 +57,13 @@ def _build_demo():
             placeholder="Smith, J. (2020). Machine Learning Approaches. Journal of AI, 12(3), 45-67.",
             lines=3,
         )
+        consolidate_toggle = gr.Checkbox(label="Consolidate (CrossRef lookup)", value=False)
         convert_btn = gr.Button("Convert", variant="primary")
         bibtex_output = gr.Code(label="BibTeX", language=None, lines=8)
 
-        convert_btn.click(fn=_gradio_parse, inputs=citation_input, outputs=bibtex_output)
-        citation_input.submit(fn=_gradio_parse, inputs=citation_input, outputs=bibtex_output)
+        inputs = [citation_input, consolidate_toggle]
+        convert_btn.click(fn=_gradio_parse, inputs=inputs, outputs=bibtex_output)
+        citation_input.submit(fn=_gradio_parse, inputs=inputs, outputs=bibtex_output)
 
         gr.Examples(
             examples=[
@@ -80,6 +86,11 @@ if __name__ == "__main__":
         nargs="*",
         help="Citation string(s). If omitted, launches the web UI.",
     )
+    parser.add_argument(
+        "-c", "--consolidate",
+        action="store_true",
+        help="Consolidate results via CrossRef lookup.",
+    )
     args = parser.parse_args()
 
     if args.citation:
@@ -87,7 +98,7 @@ if __name__ == "__main__":
         citations = [" ".join(args.citation)]
         for citation in citations:
             try:
-                print(parse_citation(citation))
+                print(parse_citation(citation, consolidate=args.consolidate))
             except (ValueError, httpx.HTTPStatusError, httpx.ConnectError, httpx.TimeoutException) as e:
                 print(f"ERROR: {e}", file=sys.stderr)
                 errors += 1

@@ -97,7 +97,7 @@ def cli():
     args = parser.parse_args()
 
     if args.serve:
-        _build_demo().launch(server_name="0.0.0.0")
+        _build_demo().launch()
         return
 
     # Collect citations from args or stdin
@@ -106,8 +106,9 @@ def cli():
     elif not sys.stdin.isatty():
         citations = [line for line in sys.stdin if line.strip()]
     else:
-        parser.print_help()
-        sys.exit(1)
+        # No args, no stdin — launch the web UI (default for HF Spaces)
+        _build_demo().launch()
+        return
 
     errors = 0
     for citation in citations:

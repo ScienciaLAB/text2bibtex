@@ -71,56 +71,27 @@ def _build_demo():
     return demo
 
 
-def __getattr__(name):
-    """Lazy-load `demo` so HF Spaces finds it on import, but CLI stays lightweight."""
-    if name == "demo":
-        demo = _build_demo()
-        globals()["demo"] = demo
-        return demo
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-
-
-def cli():
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Convert free-text citations to BibTeX via GROBID.",
     )
     parser.add_argument(
         "citation",
         nargs="*",
-        help="Citation string(s). If omitted, reads from stdin (one citation per line).",
-    )
-    parser.add_argument(
-        "--serve",
-        action="store_true",
-        help="Launch the Gradio web UI instead.",
+        help="Citation string(s). If omitted, launches the web UI.",
     )
     args = parser.parse_args()
 
-    if args.serve:
-        _build_demo().launch()
-        return
-
-    # Collect citations from args or stdin
     if args.citation:
+        errors = 0
         citations = [" ".join(args.citation)]
-    elif not sys.stdin.isatty():
-        citations = [line for line in sys.stdin if line.strip()]
+        for citation in citations:
+            try:
+                print(parse_citation(citation))
+            except (ValueError, httpx.HTTPStatusError, httpx.ConnectError, httpx.TimeoutException) as e:
+                print(f"ERROR: {e}", file=sys.stderr)
+                errors += 1
+        if errors:
+            sys.exit(1)
     else:
-        # No args, no stdin — launch the web UI (default for HF Spaces)
         _build_demo().launch()
-        return
-
-    errors = 0
-    for citation in citations:
-        try:
-            print(parse_citation(citation))
-        except (ValueError, httpx.HTTPStatusError, httpx.ConnectError, httpx.TimeoutException) as e:
-            print(f"ERROR: {e}", file=sys.stderr)
-            errors += 1
-
-    if errors:
-        sys.exit(1)
-
-
-if __name__ == "__main__":
-    cli()

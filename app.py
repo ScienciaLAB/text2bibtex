@@ -65,6 +65,34 @@ def _build_demo():
         convert_btn.click(fn=_gradio_parse, inputs=inputs, outputs=bibtex_output)
         citation_input.submit(fn=_gradio_parse, inputs=inputs, outputs=bibtex_output)
 
+        with gr.Accordion("Bookmarklet — convert citations from any webpage", open=False):
+            gr.Markdown(
+                "Highlight a citation on any page, click the bookmarklet, and the BibTeX is copied to your clipboard.\n\n"
+                "**How to install:**\n"
+                "1. Copy the code below\n"
+                "2. Create a new bookmark in your browser\n"
+                "3. Paste the code as the bookmark URL\n\n"
+                "```\n"
+                "javascript:void(function(){var G='https://lfoppiano-grobid-dev-full.hf.space',t=window.getSelection().toString().trim();"
+                "if(!t){T('Select a citation first',1);return}T('Converting...');"
+                "fetch(G+'/api/processCitation',{method:'POST',headers:{Accept:'application/x-bibtex'},"
+                "body:new URLSearchParams({citations:t,consolidateCitations:'1'})})"
+                ".then(function(r){if(!r.ok)throw new Error('GROBID '+r.status);return r.text()})"
+                ".then(function(b){b=b.trim();if(!b)throw new Error('Could not parse citation');"
+                "return navigator.clipboard.writeText(b).then(function(){T('BibTeX copied!')})})"
+                ".catch(function(e){T(e.message,1)});"
+                "function T(m,err){var e=document.getElementById('_bt');if(e)e.remove();"
+                "e=document.createElement('div');e.id='_bt';e.textContent=m;"
+                "e.style.cssText='position:fixed;bottom:24px;right:24px;z-index:2147483647;"
+                "padding:12px 20px;border-radius:8px;font:14px/1.4 system-ui,sans-serif;"
+                "color:%23fff;background:'+(err?'%23c0392b':'%232ecc71')+';box-shadow:0 4px 12px rgba(0,0,0,.3);"
+                "transition:opacity .3s;opacity:1';document.body.appendChild(e);"
+                "setTimeout(function(){e.style.opacity='0';setTimeout(function(){e.remove()},300)},3000)}}())\n"
+                "```\n\n"
+                "**How to use:** select a citation on any webpage, then click the bookmark. "
+                "A green toast confirms the BibTeX was copied to your clipboard."
+            )
+
         gr.Examples(
             examples=[
                 ["Smith, J. (2020). Machine Learning Approaches. Journal of AI, 12(3), 45-67."],

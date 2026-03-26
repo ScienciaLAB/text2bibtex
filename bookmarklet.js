@@ -13,7 +13,7 @@
   fetch(GROBID + "/api/processCitation", {
     method: "POST",
     headers: { Accept: "application/x-bibtex" },
-    body: new URLSearchParams({ citations: text }),
+    body: new URLSearchParams({ citations: text, consolidateCitations: "1" }),
   })
     .then(function (r) {
       if (!r.ok) throw new Error("GROBID " + r.status);

@@ -97,7 +97,7 @@ def cli():
     args = parser.parse_args()
 
     if args.serve:
-        serve()
+        _build_demo().launch(server_name="0.0.0.0")
         return
 
     # Collect citations from args or stdin

@@ -50,7 +50,7 @@ def _build_demo():
 
     with gr.Blocks(title="Citation to BibTeX") as demo:
         gr.Markdown("# Citation to BibTeX")
-        gr.Markdown("Paste a free-text citation and get BibTeX output, powered by <a href="https://github.com/grobidOrg/grobid" target="_blank">GROBID</a>.")
+        gr.Markdown('Paste a free-text citation and get BibTeX output, powered by <a href="https://github.com/grobidOrg/grobid" target="_blank">GROBID</a>.')
 
         citation_input = gr.Textbox(
             label="Citation",

@@ -13,9 +13,14 @@ You found the perfect paper. You scroll down to "Cite this paper" and... no BibT
 
 Powered by [GROBID](https://github.com/grobidOrg/grobid) — results are automatically extracted and may contain errors. Always review the output before use.
 
+https://github.com/user-attachments/assets/c319faed-3373-4d2e-89f8-d0561d2ccd2d
+
+
 ## Bookmarklet
 
 Highlight a citation on any webpage, click the bookmarklet, and the BibTeX is copied to your clipboard.
+
+https://github.com/user-attachments/assets/73b335c6-3de5-49bf-b333-8dc6d0d2bf6a
 
 **Install:** drag this link to your bookmarks bar:
 

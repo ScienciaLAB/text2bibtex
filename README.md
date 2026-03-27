@@ -9,7 +9,9 @@ app_file: app.py
 pinned: false
 ---
 
-Paste a free-text citation and get BibTeX output. Uses [GROBID](https://github.com/kermitt2/grobid) for ML-based citation parsing.
+You found the perfect paper. You scroll down to "Cite this paper" and... no BibTeX export. Just paste the citation here — or highlight it on any page and click one bookmark.
+
+Powered by [GROBID](https://github.com/grobidOrg/grobid) — results are automatically extracted and may contain errors. Always review the output before use.
 
 ## Bookmarklet
 

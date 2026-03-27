@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Citation to BibTeX</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f7f7f8;
+      color: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 960px;
+      width: 100%;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.25rem;
+    }
+    .subtitle {
+      color: #555;
+      margin-bottom: 2rem;
+    }
+    .subtitle a { color: #2563eb; text-decoration: none; }
+    .subtitle a:hover { text-decoration: underline; }
+    .main {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+    @media (max-width: 700px) {
+      .main { grid-template-columns: 1fr; }
+    }
+
+    /* Left column — converter */
+    .converter {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      font-size: 0.95rem;
+    }
+    textarea {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-family: inherit;
+      font-size: 0.95rem;
+      resize: vertical;
+      min-height: 80px;
+    }
+    textarea:focus { outline: 2px solid #2563eb; border-color: transparent; }
+    .options {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 0.75rem 0;
+    }
+    .options label { font-weight: 400; margin: 0; cursor: pointer; }
+    .options input[type="checkbox"] { margin-right: 0.3rem; }
+    button.convert {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.6rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: background .15s;
+    }
+    button.convert:hover { background: #1d4ed8; }
+    button.convert:disabled { background: #93b4f5; cursor: wait; }
+    .output-wrap { margin-top: 1rem; }
+    .output-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.4rem;
+    }
+    .copy-btn {
+      background: none;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 0.25rem 0.6rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: #555;
+    }
+    .copy-btn:hover { background: #f3f4f6; }
+    pre {
+      background: #1e1e2e;
+      color: #cdd6f4;
+      border-radius: 8px;
+      padding: 1rem;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      min-height: 60px;
+      white-space: pre-wrap;
+    }
+    .error { color: #dc2626; font-weight: 500; margin-top: 0.5rem; }
+
+    /* Right column — bookmarklet */
+    .sidebar {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    }
+    .sidebar h2 {
+      font-size: 1.15rem;
+      margin-bottom: 0.75rem;
+    }
+    .sidebar p, .sidebar li {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: #444;
+    }
+    .sidebar ol {
+      padding-left: 1.2rem;
+      margin: 0.75rem 0;
+    }
+    .bookmarklet-link {
+      display: inline-block;
+      background: #2563eb;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin: 0.75rem 0;
+      cursor: grab;
+    }
+    .bookmarklet-link:hover { background: #1d4ed8; }
+    .hint {
+      font-size: 0.8rem;
+      color: #888;
+      margin-top: 0.5rem;
+    }
+
+    /* Examples */
+    .examples {
+      margin-top: 1.5rem;
+    }
+    .examples h3 {
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+    }
+    .example-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 0.6rem 0.75rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+      color: #333;
+      cursor: pointer;
+      line-height: 1.4;
+    }
+    .example-btn:hover { background: #f3f4f6; border-color: #d1d5db; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Citation to BibTeX</h1>
+    <p style="font-size:1.1rem;color:#333;margin-bottom:1.5rem;line-height:1.6;">You found the perfect paper. You scroll down to "Cite this paper" and... no BibTeX export. Just paste the citation here — or highlight it on any page and click one bookmark.</p>
+    <p class="subtitle">Powered by <a href="https://github.com/grobidOrg/grobid" target="_blank">GROBID</a> &mdash; results are automatically extracted and may contain errors. Always review the output before use.</p>
+
+    <div class="main">
+      <div class="converter">
+        <label for="citation">Citation</label>
+        <textarea id="citation" placeholder="Smith, J. (2020). Machine Learning Approaches. Journal of AI, 12(3), 45-67."></textarea>
+
+        <div class="options">
+          <label><input type="checkbox" id="consolidate"> Consolidate (CrossRef lookup)</label>
+        </div>
+
+        <button class="convert" id="convertBtn" onclick="convert()">Convert</button>
+
+        <div class="output-wrap" id="outputWrap" style="display:none">
+          <div class="output-header">
+            <label>BibTeX</label>
+            <button class="copy-btn" onclick="copyOutput()">Copy</button>
+          </div>
+          <pre id="output"></pre>
+        </div>
+        <p class="error" id="error"></p>
+
+        <div class="examples">
+          <h3>Examples</h3>
+          <button class="example-btn" onclick="fillExample(this)">Smith, J. (2020). Machine Learning Approaches. Journal of AI, 12(3), 45-67.</button>
+          <button class="example-btn" onclick="fillExample(this)">Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., &amp; Polosukhin, I. (2017). Attention is all you need. Advances in neural information processing systems, 30.</button>
+          <button class="example-btn" onclick="fillExample(this)">LeCun, Y., Bengio, Y., &amp; Hinton, G. Deep learning. Nature 521, 436-444 (2015).</button>
+        </div>
+      </div>
+
+      <div class="sidebar">
+        <h2>Convert directly from your browser</h2>
+
+        <p style="text-align:center;margin:1rem 0">
+          <a class="bookmarklet-link" id="bookmarkletLink" href="javascript:void(function(){var G='https://lfoppiano-grobid-dev-full.hf.space',t=window.getSelection().toString().trim();if(!t){T('Select a citation first',1);return}T('Converting...');fetch(G+'/api/processCitation',{method:'POST',headers:{Accept:'application/x-bibtex'},body:new URLSearchParams({citations:t,consolidateCitations:'1'})}).then(function(r){if(!r.ok)throw new Error('GROBID '+r.status);return r.text()}).then(function(b){b=b.trim();if(!b)throw new Error('Could not parse citation');return navigator.clipboard.writeText(b).then(function(){T('BibTeX copied!')})}).catch(function(e){T(e.message,1)});function T(m,err){var e=document.getElementById('_bt');if(e)e.remove();e=document.createElement('div');e.id='_bt';e.textContent=m;e.style.cssText='position:fixed;bottom:24px;right:24px;z-index:2147483647;padding:12px 20px;border-radius:8px;font:14px/1.4 system-ui,sans-serif;color:%23fff;background:'+(err?'%23c0392b':'%232ecc71')+';box-shadow:0 4px 12px rgba(0,0,0,.3);transition:opacity .3s;opacity:1';document.body.appendChild(e);setTimeout(function(){e.style.opacity='0';setTimeout(function(){e.remove()},300)},3000)}}())" onclick="event.preventDefault();showInstallModal()">Citation → BibTeX</a>
+        </p>
+
+        <p>Once installed, on any webpage:</p>
+        <ol>
+          <li>Select a citation</li>
+          <li>Click the bookmark</li>
+          <li>BibTeX is copied to your clipboard</li>
+        </ol>
+        <p class="hint">A green toast confirms success. Consolidation (CrossRef) is enabled by default.</p>
+      </div>
+
+      <!-- Install modal -->
+      <div id="installModal" style="display:none;position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center" onclick="if(event.target===this)closeInstallModal()">
+        <div style="background:#fff;border-radius:16px;padding:2rem;max-width:480px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.2);position:relative">
+          <button onclick="closeInstallModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888">&times;</button>
+          <h3 style="margin-bottom:1rem;font-size:1.2rem">Install the bookmarklet</h3>
+
+          <p style="margin-bottom:1rem;font-size:0.95rem;color:#444"><strong>Option 1:</strong> Drag this button to your bookmarks bar:</p>
+          <p style="text-align:center;margin-bottom:1.25rem">
+            <a class="bookmarklet-link" id="bookmarkletDrag" style="cursor:grab" href="">Citation → BibTeX</a>
+          </p>
+
+          <p style="margin-bottom:0.75rem;font-size:0.95rem;color:#444"><strong>Option 2:</strong> Create a bookmark manually and paste this as the URL:</p>
+          <div style="position:relative">
+            <pre id="bookmarkletCode" style="font-size:0.75rem;padding:0.75rem;padding-right:4rem;white-space:pre-wrap;word-break:break-all;max-height:120px;overflow-y:auto"></pre>
+            <button onclick="copyBookmarklet()" id="copyBmBtn" style="position:absolute;top:8px;right:8px;background:#2563eb;color:#fff;border:none;border-radius:6px;padding:0.3rem 0.7rem;font-size:0.8rem;cursor:pointer">Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var GROBID = "https://lfoppiano-grobid-dev-full.hf.space";
+
+    function convert() {
+      var text = document.getElementById("citation").value.trim();
+      var errorEl = document.getElementById("error");
+      var outputWrap = document.getElementById("outputWrap");
+      var outputEl = document.getElementById("output");
+      var btn = document.getElementById("convertBtn");
+
+      errorEl.textContent = "";
+      outputWrap.style.display = "none";
+
+      if (!text) { errorEl.textContent = "Please enter a citation."; return; }
+
+      btn.disabled = true;
+      btn.textContent = "Converting...";
+
+      var params = { citations: text };
+      if (document.getElementById("consolidate").checked) {
+        params.consolidateCitations = "1";
+      }
+
+      fetch(GROBID + "/api/processCitation", {
+        method: "POST",
+        headers: { Accept: "application/x-bibtex" },
+        body: new URLSearchParams(params),
+      })
+        .then(function (r) {
+          if (!r.ok) throw new Error("GROBID returned status " + r.status);
+          return r.text();
+        })
+        .then(function (bib) {
+          bib = bib.trim();
+          if (!bib) throw new Error("Could not parse citation into BibTeX.");
+          outputEl.textContent = bib;
+          outputWrap.style.display = "block";
+        })
+        .catch(function (e) {
+          errorEl.textContent = e.message;
+        })
+        .finally(function () {
+          btn.disabled = false;
+          btn.textContent = "Convert";
+        });
+    }
+
+    function copyOutput() {
+      var text = document.getElementById("output").textContent;
+      navigator.clipboard.writeText(text).then(function () {
+        var btn = document.querySelector(".copy-btn");
+        btn.textContent = "Copied!";
+        setTimeout(function () { btn.textContent = "Copy"; }, 1500);
+      });
+    }
+
+    function fillExample(el) {
+      document.getElementById("citation").value = el.textContent;
+    }
+
+    document.getElementById("citation").addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); convert(); }
+    });
+
+    var bmCode = document.getElementById("bookmarkletLink").getAttribute("href");
+    document.getElementById("bookmarkletDrag").setAttribute("href", bmCode);
+    document.getElementById("bookmarkletCode").textContent = bmCode;
+
+    function showInstallModal() {
+      var m = document.getElementById("installModal");
+      m.style.display = "flex";
+    }
+
+    function closeInstallModal() {
+      document.getElementById("installModal").style.display = "none";
+    }
+
+    function copyBookmarklet() {
+      navigator.clipboard.writeText(bmCode).then(function () {
+        var btn = document.getElementById("copyBmBtn");
+        btn.textContent = "Copied!";
+        setTimeout(function () { btn.textContent = "Copy"; }, 1500);
+      });
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeInstallModal();
+    });
+  </script>
+</body>
+</html>

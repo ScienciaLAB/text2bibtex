@@ -50,7 +50,8 @@ def _build_demo():
 
     with gr.Blocks(title="Citation to BibTeX") as demo:
         gr.Markdown("# Citation to BibTeX")
-        gr.Markdown('Paste a free-text citation and get BibTeX output, powered by <a href="https://github.com/grobidOrg/grobid" target="_blank">GROBID</a>.')
+        gr.Markdown('You found the perfect paper. You scroll down to "Cite this paper" and... no BibTeX export. Just paste the citation here — or highlight it on any page and click one bookmark.')
+        gr.Markdown('Powered by <a href="https://github.com/grobidOrg/grobid" target="_blank">GROBID</a> — results are automatically extracted and may contain errors. Always review the output before use.')
 
         with gr.Row():
             with gr.Column(scale=2):

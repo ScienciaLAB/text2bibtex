@@ -6,6 +6,7 @@ import httpx
 
 GROBID_URL = os.environ.get("GROBID_URL", "https://lfoppiano-grobid-dev-full.hf.space")
 GROBID_TIMEOUT = int(os.environ.get("GROBID_TIMEOUT", "30"))
+GROBID_PDF_TIMEOUT = int(os.environ.get("GROBID_PDF_TIMEOUT", "120"))
 
 
 def parse_citation(citation: str, consolidate: bool = False) -> str:
@@ -33,12 +34,35 @@ def parse_citation(citation: str, consolidate: bool = False) -> str:
     return bibtex
 
 
+def parse_pdf_references(pdf_path: str, consolidate: bool = False) -> str:
+    """Send a PDF to GROBID and return BibTeX for all extracted references."""
+    data = {}
+    if consolidate:
+        data["consolidateCitations"] = "1"
+
+    with open(pdf_path, "rb") as f:
+        resp = httpx.post(
+            f"{GROBID_URL}/api/processReferences",
+            data=data,
+            files={"input": f},
+            headers={"Accept": "application/x-bibtex"},
+            timeout=GROBID_PDF_TIMEOUT,
+        )
+    resp.raise_for_status()
+
+    bibtex = resp.text.strip()
+    if not bibtex:
+        raise ValueError("No references found in this PDF.")
+
+    return bibtex
+
+
 def _build_demo():
     import gradio as gr
 
-    def _gradio_parse(citation: str, consolidate: bool) -> str:
+    def _wrap_grobid_errors(fn):
         try:
-            return parse_citation(citation, consolidate=consolidate)
+            return fn()
         except ValueError as e:
             raise gr.Error(str(e))
         except httpx.ConnectError:
@@ -48,21 +72,51 @@ def _build_demo():
         except httpx.HTTPStatusError as e:
             raise gr.Error(f"GROBID returned status {e.response.status_code}.")
 
+    def _gradio_parse(citation: str, consolidate: bool) -> str:
+        return _wrap_grobid_errors(lambda: parse_citation(citation, consolidate=consolidate))
+
+    def _gradio_parse_pdf(pdf_path, consolidate: bool) -> str:
+        if not pdf_path:
+            raise gr.Error("Please upload a PDF file first.")
+        return _wrap_grobid_errors(lambda: parse_pdf_references(pdf_path, consolidate=consolidate))
+
     with gr.Blocks(title="Citation to BibTeX") as demo:
         gr.Markdown("# Citation to BibTeX")
-        gr.Markdown('You found the perfect paper. You scroll down to "Cite this paper" and... no BibTeX export. Just paste the citation here — or highlight it on any page and click one bookmark.')
+        gr.Markdown('You found the perfect paper. You scroll down to "Cite this paper" and... no BibTeX export. Just paste the citation here, upload the PDF to extract every reference at once, or highlight any citation on the web and click one bookmark.')
         gr.Markdown('Powered by <a href="https://github.com/grobidOrg/grobid" target="_blank">GROBID</a> — results are automatically extracted and may contain errors. Always review the output before use.')
 
         with gr.Row():
             with gr.Column(scale=2):
-                citation_input = gr.Textbox(
-                    label="Citation",
-                    placeholder="Smith, J. (2020). Machine Learning Approaches. Journal of AI, 12(3), 45-67.",
-                    lines=3,
-                )
-                consolidate_toggle = gr.Checkbox(label="Consolidate (CrossRef lookup)", value=False)
-                convert_btn = gr.Button("Convert", variant="primary")
-                bibtex_output = gr.Code(label="BibTeX", language=None, lines=8)
+                with gr.Tabs():
+                    with gr.Tab("Paste citation"):
+                        citation_input = gr.Textbox(
+                            label="Citation",
+                            placeholder="Smith, J. (2020). Machine Learning Approaches. Journal of AI, 12(3), 45-67.",
+                            lines=3,
+                        )
+                        consolidate_toggle = gr.Checkbox(label="Consolidate (CrossRef lookup)", value=False)
+                        convert_btn = gr.Button("Convert", variant="primary")
+                        bibtex_output = gr.Code(label="BibTeX", language=None, lines=8)
+
+                        gr.Examples(
+                            examples=[
+                                ["Smith, J. (2020). Machine Learning Approaches. Journal of AI, 12(3), 45-67."],
+                                ["Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., & Polosukhin, I. (2017). Attention is all you need. Advances in neural information processing systems, 30."],
+                                ["LeCun, Y., Bengio, Y., & Hinton, G. Deep learning. Nature 521, 436-444 (2015)."],
+                            ],
+                            inputs=citation_input,
+                        )
+
+                    with gr.Tab("Upload PDF"):
+                        pdf_input = gr.File(
+                            label="PDF",
+                            file_types=[".pdf"],
+                            type="filepath",
+                        )
+                        pdf_consolidate_toggle = gr.Checkbox(label="Consolidate (CrossRef lookup)", value=False)
+                        pdf_convert_btn = gr.Button("Extract references", variant="primary")
+                        pdf_bibtex_output = gr.Code(label="BibTeX", language=None, lines=20)
+                        gr.Markdown("PDF processing can take 30 – 60 seconds for a typical paper. Default timeout is 120s, override with the `GROBID_PDF_TIMEOUT` env var.")
 
             with gr.Column(scale=1):
                 gr.Markdown(
@@ -93,18 +147,12 @@ def _build_demo():
                     "A green toast confirms the BibTeX was copied to your clipboard."
                 )
 
-        inputs = [citation_input, consolidate_toggle]
-        convert_btn.click(fn=_gradio_parse, inputs=inputs, outputs=bibtex_output)
-        citation_input.submit(fn=_gradio_parse, inputs=inputs, outputs=bibtex_output)
+        text_inputs = [citation_input, consolidate_toggle]
+        convert_btn.click(fn=_gradio_parse, inputs=text_inputs, outputs=bibtex_output)
+        citation_input.submit(fn=_gradio_parse, inputs=text_inputs, outputs=bibtex_output)
 
-        gr.Examples(
-            examples=[
-                ["Smith, J. (2020). Machine Learning Approaches. Journal of AI, 12(3), 45-67."],
-                ["Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., & Polosukhin, I. (2017). Attention is all you need. Advances in neural information processing systems, 30."],
-                ["LeCun, Y., Bengio, Y., & Hinton, G. Deep learning. Nature 521, 436-444 (2015)."],
-            ],
-            inputs=citation_input,
-        )
+        pdf_inputs = [pdf_input, pdf_consolidate_toggle]
+        pdf_convert_btn.click(fn=_gradio_parse_pdf, inputs=pdf_inputs, outputs=pdf_bibtex_output)
 
     return demo
 

@@ -121,7 +121,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-c", "--consolidate",
         action="store_true",
-        help="Consolidate results via CrossRef lookup.",
+        help="Consolidate results via Crossref lookup.",
     )
     args = parser.parse_args()
 

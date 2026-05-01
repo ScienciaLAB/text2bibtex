@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy to Hugging Face
 
 on:
   push:
@@ -8,50 +8,21 @@ on:
     types: [opened, synchronize, reopened]
 
 concurrency:
-  group: deploy-${{ github.ref }}
+  group: deploy-hf-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   deploy-hf:
-    name: Deploy to Hugging Face Space
+    name: Sync to Hugging Face Space
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - name: Configure git identity
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Push to Hugging Face Space
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: |
-          git push --force \
-            "https://x-access-token:${HF_TOKEN}@huggingface.co/spaces/sciencialab/text2bibtex" \
-            HEAD:main
-
-  deploy-pages:
-    name: Deploy GitHub Pages
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/configure-pages@v5
-
-      - uses: actions/upload-pages-artifact@v3
+      - uses: huggingface/hub-sync@v0.1.0
         with:
-          path: docs/
-
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          github_repo_id: ${{ github.repository }}
+          huggingface_repo_id: sciencialab/text2bibtex
+          hf_token: ${{ secrets.HF_TOKEN }}
+          space_sdk: gradio

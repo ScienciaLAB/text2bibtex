@@ -94,7 +94,7 @@ def _build_demo():
                             placeholder="Smith, J. (2020). Machine Learning Approaches. Journal of AI, 12(3), 45-67.",
                             lines=3,
                         )
-                        consolidate_toggle = gr.Checkbox(label="Consolidate (CrossRef lookup)", value=False)
+                        consolidate_toggle = gr.Checkbox(label="Consolidate (Crossref lookup)", value=False)
                         convert_btn = gr.Button("Convert", variant="primary")
                         bibtex_output = gr.Code(label="BibTeX", language=None, lines=8)
 
@@ -113,7 +113,7 @@ def _build_demo():
                             file_types=[".pdf"],
                             type="filepath",
                         )
-                        pdf_consolidate_toggle = gr.Checkbox(label="Consolidate (CrossRef lookup)", value=False)
+                        pdf_consolidate_toggle = gr.Checkbox(label="Consolidate (Crossref lookup)", value=False)
                         pdf_convert_btn = gr.Button("Extract references", variant="primary")
                         pdf_bibtex_output = gr.Code(label="BibTeX", language=None, lines=20)
                         gr.Markdown("PDF processing can take 30 – 60 seconds for a typical paper. Default timeout is 120s, override with the `GROBID_PDF_TIMEOUT` env var.")
@@ -169,7 +169,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-c", "--consolidate",
         action="store_true",
-        help="Consolidate results via CrossRef lookup.",
+        help="Consolidate results via Crossref lookup.",
     )
     args = parser.parse_args()
 

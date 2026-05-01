@@ -1,0 +1,28 @@
+name: Deploy to Hugging Face
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: deploy-hf-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-hf:
+    name: Sync to Hugging Face Space
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - uses: huggingface/hub-sync@v0.1.0
+        with:
+          github_repo_id: ${{ github.repository }}
+          huggingface_repo_id: sciencialab/text2bibtex
+          hf_token: ${{ secrets.HF_TOKEN }}
+          space_sdk: gradio

@@ -120,7 +120,8 @@ def _build_demo():
 
             with gr.Column(scale=1):
                 gr.Markdown(
-                    "### Convert directly from your browser\n\n"
+                    "### Bookmarklet (citation text only)\n\n"
+                    "*For PDF references, use the Upload PDF tab.*\n\n"
                     "Highlight a citation on any page, click the bookmark, and the BibTeX is copied to your clipboard.\n\n"
                     "**How to install:**\n"
                     "1. Copy the code below\n"
